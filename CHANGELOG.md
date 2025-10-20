@@ -1,3 +1,6 @@
+### 1.0.1
+* Updated PullUp plugin description in `pubspec.yaml`.
+
 ## 1.0.0
 
 * Initial release of the PullUp plugin for Flutter.
