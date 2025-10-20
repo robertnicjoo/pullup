@@ -82,7 +82,9 @@ class _PullUpRefreshState extends State<PullUpRefresh>
 
     // If autoPull is enabled, set up a periodic timer
     if (widget.autoPull) {
-      _autoTimer = Timer.periodic(Duration(milliseconds: widget.pullDuration), (_) {
+      _autoTimer = Timer.periodic(Duration(milliseconds: widget.pullDuration), (
+        _,
+      ) {
         if (!_isRefreshing && !_userInteracting) _triggerRefresh();
       });
     }
@@ -92,7 +94,7 @@ class _PullUpRefreshState extends State<PullUpRefresh>
   /// to trigger a refresh.
   void _scrollListener() {
     if (_controller.position.maxScrollExtent - _controller.position.pixels <=
-        widget.triggerDistance &&
+            widget.triggerDistance &&
         !_isRefreshing) {
       _triggerRefresh();
     }
@@ -141,7 +143,9 @@ class _PullUpRefreshState extends State<PullUpRefresh>
     return AnimatedPadding(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
-      padding: EdgeInsets.only(bottom: _isRefreshing ? widget.slideDistance : 0),
+      padding: EdgeInsets.only(
+        bottom: _isRefreshing ? widget.slideDistance : 0,
+      ),
       child: SizedBox(
         height: widget.indicatorSize,
         width: widget.indicatorSize,
@@ -162,7 +166,8 @@ class _PullUpRefreshState extends State<PullUpRefresh>
         children: [
           NotificationListener<OverscrollIndicatorNotification>(
             onNotification: (overscroll) {
-              overscroll.disallowIndicator(); // Hide default Android overscroll glow
+              overscroll
+                  .disallowIndicator(); // Hide default Android overscroll glow
               return true;
             },
             child: SingleChildScrollView(

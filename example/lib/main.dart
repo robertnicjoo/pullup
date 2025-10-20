@@ -13,8 +13,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final int totalItems = 100; // Total number of items
-  final int pageSize = 30;    // Items per "page"
-  List<int> items = [];       // Current loaded items
+  final int pageSize = 30; // Items per "page"
+  List<int> items = []; // Current loaded items
 
   @override
   void initState() {
@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       final nextItems = List.generate(
         pageSize,
-            (index) => items.length + index,
+        (index) => items.length + index,
       ).where((item) => item < totalItems).toList();
 
       items.addAll(nextItems);
@@ -50,9 +50,7 @@ class _MyAppState extends State<MyApp> {
           onRefresh: _loadMoreItems, // Trigger load next page on pull-up
           child: Column(
             children: [
-              ...items.map(
-                    (index) => ListTile(title: Text('Message $index')),
-              ),
+              ...items.map((index) => ListTile(title: Text('Message $index'))),
               // Show "End of list" message if all items are loaded
               if (items.length >= totalItems)
                 const Padding(

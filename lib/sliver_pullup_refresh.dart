@@ -82,10 +82,11 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
 
     // If autoPull is enabled, set up a periodic timer
     if (widget.autoPull) {
-      _autoTimer =
-          Timer.periodic(Duration(milliseconds: widget.pullDuration), (_) {
-            if (!_isRefreshing && !_userInteracting) _triggerRefresh();
-          });
+      _autoTimer = Timer.periodic(Duration(milliseconds: widget.pullDuration), (
+        _,
+      ) {
+        if (!_isRefreshing && !_userInteracting) _triggerRefresh();
+      });
     }
   }
 
@@ -93,7 +94,7 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
   /// to trigger a refresh
   void _scrollListener() {
     if (_controller.position.maxScrollExtent - _controller.position.pixels <=
-        widget.triggerDistance &&
+            widget.triggerDistance &&
         !_isRefreshing) {
       _triggerRefresh();
     }
@@ -142,7 +143,9 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
     return AnimatedPadding(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
-      padding: EdgeInsets.only(bottom: _isRefreshing ? widget.slideDistance : 0),
+      padding: EdgeInsets.only(
+        bottom: _isRefreshing ? widget.slideDistance : 0,
+      ),
       child: SizedBox(
         height: widget.indicatorSize,
         width: widget.indicatorSize,
@@ -162,10 +165,7 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
         alignment: Alignment.bottomCenter,
         children: [
           // Main scrollable area containing the provided slivers
-          CustomScrollView(
-            controller: _controller,
-            slivers: widget.slivers,
-          ),
+          CustomScrollView(controller: _controller, slivers: widget.slivers),
           if (_isRefreshing) _buildIndicator(), // Show indicator if refreshing
         ],
       ),
