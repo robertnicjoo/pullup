@@ -1,6 +1,6 @@
 name: pullup
 description: "A Flutter plugin providing customizable pull-up-to-refresh and auto-loading functionality for scrollable widgets. Made By PT. Nicxon International Solutions"
-version: 1.0.1
+version: 1.0.2
 homepage: https://nicxonsolutions.com/dev
 repository: https://github.com/robertnicjoo/pullup
 issue_tracker: https://github.com/robertnicjoo/pullup/issues

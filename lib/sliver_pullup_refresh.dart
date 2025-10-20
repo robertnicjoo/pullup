@@ -1,37 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:async';
-import 'dart:io';
-
 import 'package:pullup/pullup.dart';
+import 'dart:async';
 
-/// A Flutter widget that allows users to pull **upwards** at the bottom of a
-/// CustomScrollView / sliver list to trigger a refresh action.
-/// Supports auto-pull, custom indicators, and slide animations.
+// Conditional import to use platform-specific indicator
+import 'platform_indicator_stub.dart'
+    if (dart.library.io) 'platform_indicator_io.dart';
+
+/// SliverPullUpRefresh widget for sliver-based scroll views like CustomScrollView.
+/// Enables pull-up-to-refresh behavior similar to PullUpRefresh, but supports slivers.
 class SliverPullUpRefresh extends StatefulWidget {
-  /// Callback function executed when a pull-up refresh is triggered
-  final PullUpCallback onRefresh;
-
-  /// Distance from the bottom at which the refresh triggers automatically
-  final double triggerDistance;
-
-  /// Size of the loading indicator widget
-  final double indicatorSize;
-
-  /// Color of the loading indicator (Android only)
-  final Color? indicatorColor;
-
-  /// Enables automatic periodic refresh without user interaction
-  final bool autoPull;
-
-  /// Interval for auto-pull in milliseconds
-  final int pullDuration;
-
-  /// Distance the indicator slides up from the bottom when refreshing
-  final double slideDistance;
-
-  /// The list of sliver widgets inside the scrollable area
-  final List<Widget> slivers;
+  final PullUpCallback onRefresh; // Callback executed when refresh triggers
+  final List<Widget> slivers; // List of slivers inside CustomScrollView
+  final double triggerDistance; // Distance from bottom to trigger refresh
+  final double indicatorSize; // Size of the loading indicator
+  final Color? indicatorColor; // Color of the indicator (Android only)
+  final bool autoPull; // Enables automatic periodic refresh
+  final int pullDuration; // Interval for auto-pull in milliseconds
+  final double slideDistance; // Distance indicator slides up when refreshing
+  final ScrollController? controller; // Optional scroll controller
 
   const SliverPullUpRefresh({
     super.key,
@@ -43,44 +30,36 @@ class SliverPullUpRefresh extends StatefulWidget {
     this.autoPull = false,
     this.pullDuration = 5000,
     this.slideDistance = 16.0,
+    this.controller,
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   State<SliverPullUpRefresh> createState() => _SliverPullUpRefreshState();
 }
 
-/// Private state class for SliverPullUpRefresh
-/// Handles scroll listening, animation, auto-pull, and indicator display.
 class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
     with SingleTickerProviderStateMixin {
-  /// Controller for the CustomScrollView
-  final ScrollController _controller = ScrollController();
-
-  /// Whether a refresh is currently in progress
-  bool _isRefreshing = false;
-
-  /// Whether the user is actively interacting with the scroll
-  bool _userInteracting = false;
-
-  /// Animation controller for rotating the loading indicator (Android)
-  late AnimationController _animationController;
-
-  /// Timer for auto-pull refresh
-  Timer? _autoTimer;
+  late final ScrollController _controller; // Internal scroll controller
+  bool _isRefreshing = false; // Tracks if refresh is in progress
+  bool _userInteracting = false; // Tracks if user is actively scrolling
+  late final AnimationController _animationController; // For rotating indicator
+  Timer? _autoTimer; // Timer for auto-pull
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_scrollListener);
 
-    // Initialize animation controller
+    // Use provided controller or create new one
+    _controller = widget.controller ?? ScrollController();
+    _controller.addListener(_scrollListener); // Listen to scroll events
+
+    // Initialize animation controller for indicator rotation
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
 
-    // If autoPull is enabled, set up a periodic timer
+    // Set up automatic pull refresh if enabled
     if (widget.autoPull) {
       _autoTimer = Timer.periodic(Duration(milliseconds: widget.pullDuration), (
         _,
@@ -90,8 +69,7 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
     }
   }
 
-  /// Listener that checks if the user has scrolled close enough to the bottom
-  /// to trigger a refresh
+  /// Scroll listener that triggers refresh when reaching triggerDistance from bottom
   void _scrollListener() {
     if (_controller.position.maxScrollExtent - _controller.position.pixels <=
             widget.triggerDistance &&
@@ -100,56 +78,44 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
     }
   }
 
-  /// Triggers the refresh callback and manages the loading indicator animation
+  /// Trigger the refresh callback and manage the indicator animation
   Future<void> _triggerRefresh() async {
-    setState(() => _isRefreshing = true);
+    setState(() => _isRefreshing = true); // Show indicator
     _animationController.repeat(); // Start rotation animation
 
-    await widget.onRefresh(); // Execute the user-provided callback
+    await widget.onRefresh(); // Call user-provided callback
 
     if (!mounted) return;
-    setState(() => _isRefreshing = false);
-    _animationController.reset(); // Reset animation when done
+    setState(() => _isRefreshing = false); // Hide indicator
+    _animationController.reset(); // Reset animation
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_scrollListener);
-    _controller.dispose();
-    _animationController.dispose();
-    _autoTimer?.cancel();
+    _controller.removeListener(_scrollListener); // Remove scroll listener
+    if (widget.controller == null) {
+      _controller.dispose(); // Dispose internal controller
+    }
+    _animationController.dispose(); // Dispose animation controller
+    _autoTimer?.cancel(); // Cancel auto-pull timer
     super.dispose();
   }
 
   /// Builds the loading indicator widget
-  /// Uses CircularProgressIndicator on Android and CupertinoActivityIndicator on iOS.
   Widget _buildIndicator() {
-    Widget indicator;
-    if (Platform.isAndroid) {
-      indicator = RotationTransition(
-        turns: _animationController,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            widget.indicatorColor ?? Colors.blue,
-          ),
-        ),
-      );
-    } else {
-      indicator = const CupertinoActivityIndicator(radius: 14);
-    }
-
-    // Slide the indicator up when refreshing
     return AnimatedPadding(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       padding: EdgeInsets.only(
-        bottom: _isRefreshing ? widget.slideDistance : 0,
+        bottom: _isRefreshing ? widget.slideDistance : 0, // Slide up indicator
       ),
       child: SizedBox(
         height: widget.indicatorSize,
         width: widget.indicatorSize,
-        child: indicator,
+        child: PlatformIndicator(
+          animation: _animationController, // Pass animation controller
+          color: widget.indicatorColor, // Pass optional color
+        ),
       ),
     );
   }
@@ -164,7 +130,7 @@ class _SliverPullUpRefreshState extends State<SliverPullUpRefresh>
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          // Main scrollable area containing the provided slivers
+          // Main sliver-based scroll view
           CustomScrollView(controller: _controller, slivers: widget.slivers),
           if (_isRefreshing) _buildIndicator(), // Show indicator if refreshing
         ],

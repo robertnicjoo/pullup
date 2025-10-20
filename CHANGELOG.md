@@ -1,3 +1,9 @@
+### 1.0.2
+* Added optional `ScrollController` support for `PullUpRefresh` and `SliverPullUpRefresh` widgets.
+* Added detailed inline comments across all widgets and platform indicator files.
+* Improved API consistency by unifying `animation` property usage in `PlatformIndicator`.
+* Minor code cleanups and documentation improvements.
+
 ### 1.0.1
 * Updated PullUp plugin description in `pubspec.yaml`.
 
